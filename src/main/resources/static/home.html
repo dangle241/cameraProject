@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        * { box-sizing: border-box; font-family: "Segoe UI", Arial, sans-serif; }
+        body { margin: 0; background: #f3f6fb; color: #111827; }
+        main { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+        .card {
+            width: 100%;
+            max-width: 520px;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 18px 28px rgba(15, 23, 42, 0.08);
+            padding: 24px;
+            text-align: center;
+        }
+        h1 { margin: 0 0 8px; }
+        .success { color: #15803d; font-weight: 700; font-size: 20px; }
+        .muted { color: #6b7280; }
+        .hidden { display: none; }
+        .logout-btn {
+            margin-top: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #dc2626;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <section class="card">
+        <h1>Trang chu</h1>
+        <p id="success-text" class="success hidden">success</p>
+        <p class="muted">Ban da dang nhap vao he thong.</p>
+        <button id="logout-btn" class="logout-btn" type="button">Log out</button>
+    </section>
+</main>
+<script>
+    (function () {
+        const status = sessionStorage.getItem("login_status");
+        const successText = document.getElementById("success-text");
+        if (status === "success") {
+            successText.classList.remove("hidden");
+            sessionStorage.removeItem("login_status");
+        }
+
+        document.getElementById("logout-btn").addEventListener("click", function () {
+            localStorage.removeItem("auth_token");
+            sessionStorage.removeItem("login_status");
+            window.location.href = "/login.html";
+        });
+    })();
+</script>
+</body>
+</html>
