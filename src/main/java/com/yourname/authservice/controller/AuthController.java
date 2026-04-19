@@ -1,45 +1,41 @@
 package com.yourname.authservice.controller;
-// Package controller: nhận HTTP request
 
+import com.yourname.authservice.dto.CsrfTokenResponse;
 import com.yourname.authservice.dto.LoginRequest;
 import com.yourname.authservice.dto.LoginResponse;
-import com.yourname.authservice.entity.AppUser;
 import com.yourname.authservice.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-// Kết hợp @Controller + @ResponseBody
-// Trả JSON trực tiếp
-
 @RequestMapping("/auth")
-// Prefix cho toàn bộ API trong controller
 public class AuthController {
 
     private final AuthService authService;
-    // Inject AuthService
 
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
-    @CrossOrigin(origins = "*")
-    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    // API: POST /auth/login
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest req) {
-        // @RequestBody:
-        // - Parse JSON → LoginRequest object
-        //Jackson ObjectMapper
-//        Có annotation @RequestBody
-//        Content-Type = application/json
-//        Tham số KHÔNG phải String / primitive
-        AppUser user = authService.authenticate(req);
-        // Gọi service để xác thực
+    /**
+     * Exposes CSRF token metadata for the SPA (cookie + header name).
+     */
+    @GetMapping(value = "/csrf", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CsrfTokenResponse csrf(CsrfToken csrfToken) {
+        return new CsrfTokenResponse(csrfToken.getToken(), csrfToken.getHeaderName(), csrfToken.getParameterName());
+    }
 
-        // TODO: Generate real JWT (demo: fixed token string)
+    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
+        authService.authenticate(req);
         LoginResponse body = new LoginResponse("JWT_TOKEN_WILL_BE_HERE");
         return ResponseEntity.ok(body);
-        // Trả token JSON { token: "..." }
     }
 }

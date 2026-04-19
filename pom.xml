@@ -50,6 +50,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
 
 		<dependency>
 			<groupId>org.postgresql</groupId>
@@ -83,6 +88,8 @@
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<!-- Required: maven-compiler-plugin resolves paths without BOM version merge -->
+							<version>${lombok.version}</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
@@ -101,5 +108,49 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<!--
+	  Optional stacks: mvn -Pkafka / -Predis / -Pamqp / -Pbatch (combine: -Pkafka,redis).
+	  After activating a profile, add @Configuration classes under integration/ that provide real beans
+	  (e.g. KafkaTemplate DomainEventPublisher) guarded by @ConditionalOnClass / @ConditionalOnProperty.
+	-->
+	<profiles>
+		<profile>
+			<id>kafka</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.kafka</groupId>
+					<artifactId>spring-kafka</artifactId>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>redis</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-data-redis</artifactId>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>amqp</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-amqp</artifactId>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>batch</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-batch</artifactId>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
 
 </project>

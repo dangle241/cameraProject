@@ -1,4 +1,4 @@
-const { useState } = React;
+const { useState, useEffect } = React;
 // Khoi tao root de React render vao phan tu co id "root".
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -18,6 +18,23 @@ function LoginPage() {
     const [isError, setIsError] = useState(false);
     // Luu token sau khi dang nhap thanh cong de hien thi.
     const [token, setToken] = useState("");
+    // CSRF header name + value from server (Spring Security cookie-based CSRF).
+    const [csrf, setCsrf] = useState({ headerName: "", token: "" });
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch("/auth/csrf", { credentials: "same-origin" })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (!cancelled && d && d.token && d.headerName) {
+                    setCsrf({ headerName: d.headerName, token: d.token });
+                }
+            })
+            .catch(() => {});
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     // Ham xu ly khi submit form dang nhap.
     async function handleSubmit(event) {
@@ -42,13 +59,14 @@ function LoginPage() {
 
         try {
             // Goi API dang nhap voi method POST.
+            const headers = { "Content-Type": "application/json" };
+            if (csrf.token && csrf.headerName) {
+                headers[csrf.headerName] = csrf.token;
+            }
             const response = await fetch("/auth/login", {
                 method: "POST",
-                // Khai bao body duoc gui o dang JSON.
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                // Dua username/password vao body request.
+                credentials: "same-origin",
+                headers,
                 body: JSON.stringify({
                     username: cleanUsername,
                     password

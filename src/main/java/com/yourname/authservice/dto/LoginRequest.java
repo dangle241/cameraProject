@@ -1,11 +1,15 @@
 package com.yourname.authservice.dto;
-// DTO: đối tượng dùng để nhận dữ liệu từ client
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class LoginRequest {
 
+    @NotBlank
+    @Size(max = 128)
     public String username;
-    // Username gửi từ client (JSON)
 
+    @NotBlank
+    @Size(max = 256)
     public String password;
-    // Password dạng plaintext (chỉ tồn tại trong request)
 }

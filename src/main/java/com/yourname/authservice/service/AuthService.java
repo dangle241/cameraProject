@@ -3,10 +3,13 @@ package com.yourname.authservice.service;
 
 import com.yourname.authservice.dto.LoginRequest;
 import com.yourname.authservice.entity.AppUser;
-import com.yourname.authservice.repository.AppUserRepository;
 import com.yourname.authservice.exception.AuthExceptions.InvalidPasswordException;
 import com.yourname.authservice.exception.AuthExceptions.UserDisabledException;
 import com.yourname.authservice.exception.AuthExceptions.UserNotFoundException;
+import com.yourname.authservice.integration.messaging.DomainEvent;
+import com.yourname.authservice.integration.messaging.DomainEventPublisher;
+import com.yourname.authservice.integration.properties.IntegrationProperties;
+import com.yourname.authservice.repository.AppUserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,10 +23,18 @@ public class AuthService {
     private final PasswordEncoder encoder;
     // Bean PasswordEncoder (BCrypt)
 
-    public AuthService(AppUserRepository userRepo, PasswordEncoder encoder) {
-        // Constructor Injection (BEST PRACTICE)
+    private final DomainEventPublisher domainEventPublisher;
+    private final IntegrationProperties integrationProperties;
+
+    public AuthService(
+            AppUserRepository userRepo,
+            PasswordEncoder encoder,
+            DomainEventPublisher domainEventPublisher,
+            IntegrationProperties integrationProperties) {
         this.userRepo = userRepo;
         this.encoder = encoder;
+        this.domainEventPublisher = domainEventPublisher;
+        this.integrationProperties = integrationProperties;
     }
 
     public AppUser authenticate(LoginRequest req) {
@@ -41,6 +52,10 @@ public class AuthService {
         if (!encoder.matches(req.password, user.getPasswordHash())) {
             // So sánh password plaintext với password hash
             throw new InvalidPasswordException();
+        }
+
+        if (integrationProperties.getMessaging().isPublishLoginSuccess()) {
+            domainEventPublisher.publish(DomainEvent.simple("auth.login.success", user.getUsername()));
         }
 
         return user;
