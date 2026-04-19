@@ -15,6 +15,9 @@ USER spring:spring
 
 COPY --from=build /app/target/auth-service-*.jar /app/app.jar
 
+# Default heap for ~1 GiB hosts (e.g. EC2 t2.micro). Override at run: -e JAVA_OPTS="..."
+ENV JAVA_OPTS="-Xms128m -Xmx384m -XX:MaxMetaspaceSize=96m -XX:+UseSerialGC -XX:+UseContainerSupport"
+
 # Render injects PORT; Spring reads server.port from env (see application.properties)
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-jar", "/app/app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
