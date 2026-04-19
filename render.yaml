@@ -1,0 +1,21 @@
+# Render Blueprint: connect repo, set root to this folder if repo contains multiple projects.
+# Create a PostgreSQL instance on Render, then set SPRING_DATASOURCE_* to match its credentials.
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: auth-service
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
