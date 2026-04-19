@@ -14,8 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Maps {@code DATABASE_URL} (Aiven / Render / Heroku style {@code postgres://...}) to Spring JDBC properties.
- * Preserves query string (e.g. {@code sslmode=require}) when present.
+ * Maps a cloud {@code postgres://} URI to Spring JDBC properties.
+ * Tries DATABASE_URL, then Aiven/Render-style aliases. On Render, fails fast if still pointing at localhost.
  */
 public class CloudPostgresDatabaseEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
@@ -25,29 +25,69 @@ public class CloudPostgresDatabaseEnvironmentPostProcessor implements Environmen
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        String databaseUrl = environment.getProperty("DATABASE_URL");
-        if (databaseUrl == null || databaseUrl.isBlank()) {
+        String databaseUrl = resolvePostgresUri(environment);
+        if (databaseUrl != null && !databaseUrl.isBlank()) {
+            try {
+                JdbcTarget target = toJdbc(databaseUrl, environment.getProperty("PG_SSL_MODE", "require"));
+                Map<String, Object> map = new HashMap<>();
+                map.put("spring.datasource.url", target.url());
+                map.put("spring.datasource.username", target.username());
+                map.put("spring.datasource.password", target.password());
+                map.put("spring.datasource.driver-class-name", "org.postgresql.Driver");
+                environment.getPropertySources().addFirst(new MapPropertySource(SOURCE_NAME, map));
+                log.info("DataSource from cloud URI (host={}, database={})", target.host(), target.database());
+            } catch (Exception e) {
+                log.warn("Could not parse cloud Postgres URI; using spring.datasource.* from files: {}", e.toString());
+            }
             return;
         }
-        try {
-            JdbcTarget target = toJdbc(databaseUrl, environment.getProperty("PG_SSL_MODE", "require"));
-            Map<String, Object> map = new HashMap<>();
-            map.put("spring.datasource.url", target.url());
-            map.put("spring.datasource.username", target.username());
-            map.put("spring.datasource.password", target.password());
-            map.put("spring.datasource.driver-class-name", "org.postgresql.Driver");
-            environment.getPropertySources().addFirst(new MapPropertySource(SOURCE_NAME, map));
-            log.info("DataSource from DATABASE_URL (host={}, database={})", target.host(), target.database());
-        } catch (Exception e) {
-            log.warn("Could not parse DATABASE_URL; using spring.datasource.* from files: {}", e.toString());
+
+        if (isRender(environment) && datasourceLooksLikeLocalPostgres(environment)) {
+            throw new IllegalStateException(
+                    "Render: chua cau hinh Postgres. Them bien moi truong DATABASE_URL = Service URI day du cua Aiven "
+                            + "(postgres://avnadmin:MAT_KHAU@host:port/defaultdb?sslmode=require). "
+                            + "Hoac dat SPRING_DATASOURCE_URL jdbc:postgresql://... va SPRING_DATASOURCE_USERNAME / PASSWORD. "
+                            + "Xem Environment tab cua Web Service tren Render.");
         }
+    }
+
+    private static boolean isRender(ConfigurableEnvironment environment) {
+        return "true".equalsIgnoreCase(environment.getProperty("RENDER"));
+    }
+
+    private static boolean datasourceLooksLikeLocalPostgres(ConfigurableEnvironment environment) {
+        String url = environment.getProperty("spring.datasource.url", "");
+        return url.contains("localhost") || url.contains("127.0.0.1");
+    }
+
+    /**
+     * First non-blank URI in postgres:// form, or SPRING_DATASOURCE_URL if it is a postgres URI (misplaced paste).
+     */
+    private static String resolvePostgresUri(ConfigurableEnvironment environment) {
+        String[] keys = {"DATABASE_URL", "AIVEN_DATABASE_URL", "POSTGRES_URL", "POSTGRESQL_URL"};
+        for (String key : keys) {
+            String v = environment.getProperty(key);
+            if (v != null && !v.isBlank() && looksLikePostgresUri(v)) {
+                return v.trim();
+            }
+        }
+        String spring = environment.getProperty("SPRING_DATASOURCE_URL");
+        if (spring != null && looksLikePostgresUri(spring.trim())) {
+            return spring.trim();
+        }
+        return null;
+    }
+
+    private static boolean looksLikePostgresUri(String v) {
+        String lower = v.toLowerCase();
+        return lower.startsWith("postgres://") || lower.startsWith("postgresql://");
     }
 
     private static JdbcTarget toJdbc(String databaseUrl, String sslModeFallback) throws Exception {
         URI uri = URI.create(databaseUrl.replaceFirst("^postgres(ql)?://", "http://"));
         String userInfo = uri.getUserInfo();
         if (userInfo == null || userInfo.isBlank()) {
-            throw new IllegalArgumentException("DATABASE_URL missing user info");
+            throw new IllegalArgumentException("URI missing user info");
         }
         int colon = userInfo.indexOf(':');
         String user = URLDecoder.decode(colon > 0 ? userInfo.substring(0, colon) : userInfo, StandardCharsets.UTF_8);
@@ -56,12 +96,12 @@ public class CloudPostgresDatabaseEnvironmentPostProcessor implements Environmen
                 : "";
         String host = uri.getHost();
         if (host == null || host.isBlank()) {
-            throw new IllegalArgumentException("DATABASE_URL missing host");
+            throw new IllegalArgumentException("URI missing host");
         }
         int port = uri.getPort() > 0 ? uri.getPort() : 5432;
         String path = uri.getPath();
         if (path == null || path.length() <= 1) {
-            throw new IllegalArgumentException("DATABASE_URL missing database name in path");
+            throw new IllegalArgumentException("URI missing database name in path");
         }
         String database = path.substring(1);
         String jdbcBase = String.format("jdbc:postgresql://%s:%d/%s", host, port, database);
