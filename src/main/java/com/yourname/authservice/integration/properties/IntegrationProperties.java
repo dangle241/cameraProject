@@ -14,10 +14,15 @@ public class IntegrationProperties {
      */
     private boolean schedulingEnabled = false;
 
+    @NestedConfigurationProperty
     private final Messaging messaging = new Messaging();
+    @NestedConfigurationProperty
     private final Kafka kafka = new Kafka();
+    @NestedConfigurationProperty
     private final Redis redis = new Redis();
+    @NestedConfigurationProperty
     private final Amqp amqp = new Amqp();
+    @NestedConfigurationProperty
     private final Batch batch = new Batch();
 
     public boolean isSchedulingEnabled() {
