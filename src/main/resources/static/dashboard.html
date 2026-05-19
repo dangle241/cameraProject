@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadcn Admin Dashboard</title>
+    <link rel="stylesheet" href="/dashboard.css">
+</head>
+<body>
+<div class="admin-shell">
+    <aside class="sidebar" aria-label="Sidebar">
+        <div class="team-switcher">
+            <div class="team-logo">SA</div>
+            <div>
+                <strong>Shadcn Admin</strong>
+                <span>Vite + ShadcnUI</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Menu chính">
+            <p class="nav-heading">General</p>
+            <a class="nav-item active" href="/dashboard.html">
+                <span>▦</span>
+                Dashboard
+            </a>
+            <a class="nav-item" href="#tasks">
+                <span>☑</span>
+                Tasks
+            </a>
+            <a class="nav-item" href="#apps">
+                <span>◫</span>
+                Apps
+            </a>
+            <a class="nav-item" href="#chats">
+                <span>◌</span>
+                Chats
+                <b>3</b>
+            </a>
+            <a class="nav-item" href="#users">
+                <span>◎</span>
+                Users
+            </a>
+
+            <p class="nav-heading">Pages</p>
+            <a class="nav-item" href="/login.html">
+                <span>◈</span>
+                Auth
+            </a>
+            <a class="nav-item" href="#errors">
+                <span>!</span>
+                Errors
+            </a>
+
+            <p class="nav-heading">Other</p>
+            <a class="nav-item" href="#settings">
+                <span>⚙</span>
+                Settings
+            </a>
+            <a class="nav-item" href="#help">
+                <span>?</span>
+                Help Center
+            </a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div id="user-avatar" class="avatar">U</div>
+            <div>
+                <strong id="sidebar-user-name">người dùng</strong>
+                <span>signed in</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="content-shell">
+        <header class="header">
+            <button id="sidebar-toggle" class="icon-button" type="button" aria-label="Ẩn hiện sidebar">☰</button>
+            <nav class="top-nav" aria-label="Top navigation">
+                <a class="active" href="#overview">Overview</a>
+                <a href="#customers" aria-disabled="true">Customers</a>
+                <a href="#products" aria-disabled="true">Products</a>
+                <a href="#settings" aria-disabled="true">Settings</a>
+            </nav>
+            <div class="header-actions">
+                <label class="search">
+                    <span>⌕</span>
+                    <input type="search" placeholder="Search" aria-label="Search">
+                </label>
+                <button id="theme-toggle" class="icon-button" type="button" aria-label="Đổi theme">◐</button>
+                <button id="logout-btn" class="button outline" type="button">Đăng xuất</button>
+            </div>
+        </header>
+
+        <main class="main">
+            <section class="title-row">
+                <div>
+                    <p id="success-message" class="status hidden">Đăng nhập thành công</p>
+                    <h1>Dashboard</h1>
+                    <p class="subtitle">Xin chào, <span id="user-name">người dùng</span>. Đây là dashboard theo template shadcn-admin.</p>
+                </div>
+                <button class="button" type="button">Download</button>
+            </section>
+
+            <section class="tabs" aria-label="Dashboard tabs">
+                <button class="tab active" type="button">Overview</button>
+                <button class="tab" type="button">Analytics</button>
+                <button class="tab" type="button">Reports</button>
+                <button class="tab" type="button">Notifications</button>
+            </section>
+
+            <section class="metric-grid" aria-label="Metrics">
+                <article class="card metric-card">
+                    <div class="card-head">
+                        <h2>Total Revenue</h2>
+                        <span>$</span>
+                    </div>
+                    <strong>$45,231.89</strong>
+                    <p>+20.1% from last month</p>
+                </article>
+                <article class="card metric-card">
+                    <div class="card-head">
+                        <h2>Subscriptions</h2>
+                        <span>👤</span>
+                    </div>
+                    <strong>+2350</strong>
+                    <p>+180.1% from last month</p>
+                </article>
+                <article class="card metric-card">
+                    <div class="card-head">
+                        <h2>Sales</h2>
+                        <span>💳</span>
+                    </div>
+                    <strong>+12,234</strong>
+                    <p>+19% from last month</p>
+                </article>
+                <article class="card metric-card">
+                    <div class="card-head">
+                        <h2>Active Now</h2>
+                        <span>↗</span>
+                    </div>
+                    <strong>+573</strong>
+                    <p>+201 since last hour</p>
+                </article>
+            </section>
+
+            <section id="overview" class="dashboard-grid">
+                <article class="card chart-card">
+                    <div class="section-head">
+                        <h2>Overview</h2>
+                    </div>
+                    <div id="overview-chart" class="bar-chart" aria-label="Overview chart"></div>
+                </article>
+
+                <article class="card sales-card">
+                    <div class="section-head">
+                        <h2>Recent Sales</h2>
+                        <p>You made 265 sales this month.</p>
+                    </div>
+                    <div id="recent-sales" class="sales-list"></div>
+                </article>
+            </section>
+        </main>
+    </div>
+</div>
+<script src="/dashboard.js"></script>
+</body>
+</html>

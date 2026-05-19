@@ -13,6 +13,6 @@ public class PageController {
 
     @GetMapping("/")
     public String rootPage() {
-        return "redirect:/login.html";
+        return "redirect:/home.html";
     }
 }

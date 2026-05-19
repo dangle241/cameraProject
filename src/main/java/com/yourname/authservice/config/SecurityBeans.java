@@ -93,7 +93,10 @@ public class SecurityBeans {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/", "/login").permitAll()
                         .requestMatchers(HttpMethod.GET,
-                                "/index.html", "/login.html", "/home.html", "/login.js", "/login.css").permitAll()
+                                "/index.html", "/login.html", "/home.html", "/home.css",
+                                "/dashboard.html", "/dashboard.css", "/dashboard.js",
+                                "/login.js", "/login.css").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/assets/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/csrf").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -105,7 +108,7 @@ public class SecurityBeans {
                 .formLogin(form -> form.disable())
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login.html")
-                        .defaultSuccessUrl("/home.html", true)
+                        .defaultSuccessUrl("/dashboard.html", true)
                         .failureUrl("/login.html?error=google_login_failed")
                         .userInfoEndpoint(user -> user.userService(new DefaultOAuth2UserService())));
 
